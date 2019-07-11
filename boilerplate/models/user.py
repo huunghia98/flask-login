@@ -1,10 +1,11 @@
 # coding=utf-8
 import datetime
-import enum
+import bcrypt
 
+from boilerplate.utils import random_string
+from boilerplate.utils import Role
 from flask_restplus import fields
-
-from boilerplate.models import db, bcrypt, TimestampMixin
+from boilerplate.models import db, TimestampMixin
 
 __author__ = 'ThucNC'
 
@@ -23,13 +24,7 @@ class User(db.Model, TimestampMixin):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-    class Role(enum.Enum):
-        """
-        Role of a user in the system.
-        """
-        admin = 'admin'
-        moderator = 'moderator'
-        viewer = 'viewer'
+
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(191), nullable=False, unique=True)
@@ -38,23 +33,11 @@ class User(db.Model, TimestampMixin):
     gender = db.Column(db.String(191), nullable=True)
     status = db.Column(db.Integer, default=1)
     password_hash = db.Column(db.String(100))
-    recover_hash = db.Column(db.String(100),default='notset')
+    recover_hash = db.Column(db.String(100), default= bcrypt.hashpw(random_string().encode('utf-8'), bcrypt.gensalt()))
     id_token = db.Column(db.String(512), nullable=True)
     image = db.Column(db.Text(), nullable=True)
     role = db.Column(db.Enum(Role), nullable=False, default=Role.viewer)
     last_login = db.Column(db.TIMESTAMP, default=datetime.datetime.now)
-
-    @property
-    def password(self):
-        raise AttributeError('password: write-only field')
-
-    @password.setter
-    def password(self, password):
-        self.password_hash = bcrypt.generate_password_hash(
-            password).decode('utf-8')
-
-    def check_password(self, password):
-        return bcrypt.check_password_hash(self.password_hash, password)
 
     def get_id(self):
         return self.id

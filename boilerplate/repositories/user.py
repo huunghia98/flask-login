@@ -13,11 +13,10 @@ def get_one_user_by_email_or_username(username, email):
     user = m.User.query.filter((m.User.username == username) | (m.User.email == email)).first()
     return user or None
 
+def update_recover_hash(user,hash):
+    user.recover_hash = hash
+    m.db.session.commit()
 
-# def get_user(username,password):
-#     user = m.User.query.filter(m.User.username == username).all()
-#     if len(user) > 1:
-#         return None
-#     else:
-#         if
-#         return user
+def update_password_hash(user,hash):
+    user.password_hash = hash
+    m.db.session.commit()

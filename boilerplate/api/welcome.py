@@ -20,6 +20,7 @@ class Welcome(_fr.Resource):
         """
         identity = _jwt.get_jwt_identity()
         return {
-            'welcome': 'Hello, you are welcome'
+            'welcome': 'Hello, you are welcome',
+            'iden': identity
         }
 

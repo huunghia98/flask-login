@@ -106,3 +106,4 @@ ENV/
 .mypy_cache/
 /.pytest_cache/
 /docker-compose.override.yml
+__pycache__/
