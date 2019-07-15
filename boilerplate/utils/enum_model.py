@@ -6,3 +6,9 @@ class Role(enum.Enum):
     admin = 'admin'
     moderator = 'moderator'
     viewer = 'viewer'
+
+class Action(enum.Enum):
+    create = 'create'
+    login = 'login'
+    forgot = 'forgot'
+    change = 'change'

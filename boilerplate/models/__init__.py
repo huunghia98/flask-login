@@ -17,3 +17,6 @@ def init_app(app, **kwargs):
 
 from .base import TimestampMixin
 from .user import User, UserSchema
+from .signup_user import Signup_user
+from .log import Log
+from .history_pass import History_pass

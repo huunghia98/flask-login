@@ -3,7 +3,7 @@ import datetime
 import bcrypt
 
 from boilerplate.utils import random_string
-from boilerplate.utils import Role
+from boilerplate.utils.enum_model import Role
 from flask_restplus import fields
 from boilerplate.models import db, TimestampMixin
 

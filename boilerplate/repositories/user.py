@@ -8,7 +8,6 @@ def save_user(**kwargs):
     except:
         raise Exception("Can't save user")
 
-
 def get_one_user_by_email_or_username(username, email):
     user = m.User.query.filter((m.User.username == username) | (m.User.email == email)).first()
     return user or None

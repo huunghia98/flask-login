@@ -1,14 +1,13 @@
 # coding=utf-8
 import copy
+import datetime
+
 import flask_restplus as _fr
 from flask import request
 import flask_jwt_extended as _jwt
 
 from boilerplate.extensions import Namespace
-from boilerplate.extensions import exceptions
-from boilerplate import models
 from boilerplate.services import user
-from boilerplate.utils import Role
 
 ns = Namespace('users', description='User operations')
 
@@ -26,7 +25,11 @@ class Login(_fr.Resource):
         """
         data = request.values
         if user.check_user(data.get('username'), data.get('password')):
-            access_token = _jwt.create_access_token(identity=data.get('username'));
+            iden = {
+                'username': data.get('username'),
+                'role': 'viewer'
+            }
+            access_token = _jwt.create_access_token(identity=iden,fresh=True,expires_delta=datetime.timedelta(minutes=30))
             return {
                 'access_token': access_token
             }
@@ -39,7 +42,7 @@ class Register(_fr.Resource):
         Create new user
         """
         data = request.values
-        user.create_user(data.get('username'), data.get('email'), data.get('password'), data.get('fullname'),
+        user.create_user_to_signup_users(data.get('username'), data.get('email'), data.get('password'), data.get('fullname'),
                              gender=data.get('gender'), status=data.get('status')
                              # ,role=role
                              )
@@ -62,14 +65,24 @@ class ForgotPassword(_fr.Resource):
 
 @ns.route('/change', methods=['POST'])
 class ChangePassword(_fr.Resource):
-    @_jwt.jwt_required
+    @_jwt.fresh_jwt_required
     def post(self):
         """
         Change user password
         """
         identity = _jwt.get_jwt_identity()
         data = request.values
-        user.change_password(identity, data.get('oldpass'), data.get('newpass'))
+        user.change_password(identity.get('username'), data.get('oldpass'), data.get('newpass'))
         return {
             'message': 'Password was changed successfully'
         }
+
+@ns.route('/active/', methods=['GET'])
+class Active(_fr.Resource):
+    def get(self):
+        """
+        Active account
+        """
+        data = request.values
+        active_token = data.get('active_token')
+        return user.active_account(active_token=active_token)

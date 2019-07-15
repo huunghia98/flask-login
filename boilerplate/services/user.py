@@ -1,24 +1,31 @@
 import bcrypt
+import datetime
 
-from boilerplate.repositories import user
+from boilerplate.repositories import user, log, signup_user, history_pass
 from boilerplate.extensions.exceptions import BadRequestException
 from boilerplate.utils.validator import *
 from boilerplate.utils import email as e_m
+from boilerplate.utils import random_string
 
 
-def create_user(username, email, password, fullname, **kwargs):
+def create_user_to_signup_users(username, email, password, fullname, **kwargs):
     if (validate_username(username) and validate_password(password) and validate_email(email) and fullname):
         exist = user.get_one_user_by_email_or_username(username, email)
         if exist:
             raise BadRequestException('User {username} or email {email} existed'.format(username=username, email=email))
         else:
             password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(12))
-            us = user.save_user(username=username, email=email, password_hash=password_hash, fullname=fullname,
-                                **kwargs)
+            active_token = bcrypt.hashpw(random_string().encode('utf-8'), bcrypt.gensalt())
+            link_active = """http://127.0.0.1:5000/api/users/active/?active_token={}""".format(active_token.decode('utf-8'))
+            us = signup_user.save_user_to_signup_users(username=username, email=email, password_hash=password_hash,
+                                                       fullname=fullname, active_token=active_token,
+                                                       **kwargs)
+
             try:
                 e_m.send_email({
-                    'username':username,
-                    'password': password
+                    'username': username,
+                    'password': password,
+                    'active': link_active
                 }, email)
             except:
                 print('Email user {} not be sent'.format(email))
@@ -71,8 +78,16 @@ def change_password(username, oldpass, newpass):
                 check_user(username, oldpass)
             except:
                 raise BadRequestException('Password was incorrect!')
+
+            history = history_pass.get_history_5_pass(u.id)
             if validate_password(newpass):
+                for pw in history:
+                    if bcrypt.checkpw(newpass.encode('utf-8'), pw.encode('utf-8')):
+                        raise BadRequestException('Password must be different from 5 lastest password')
+                history_pass.save_history_pass(user_id=u.id,
+                                               password_hash=bcrypt.hashpw(newpass.encode('utf-8'), bcrypt.gensalt()))
                 user.update_password_hash(u, bcrypt.hashpw(newpass.encode('utf-8'), bcrypt.gensalt()))
+                log.save_log(user_id=u.id, action='change')
             else:
                 raise BadRequestException('New password must be in format')
             return True
@@ -80,3 +95,12 @@ def change_password(username, oldpass, newpass):
             raise BadRequestException('2 password must be different')
     else:
         raise BadRequestException('User not exist')
+
+
+def active_account(active_token):
+    u = signup_user.get_one_signup_user_by_active_token(active_token)
+    if not u:
+        raise BadRequestException('Active invalid')
+    if u.token_expire_at < datetime.datetime.now():
+        raise BadRequestException('Token expired')
+    return signup_user.move_signup_user_to_user(u)
