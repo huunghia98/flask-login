@@ -7,6 +7,7 @@ from boilerplate.utils.validator import *
 from boilerplate.utils import email as e_m
 from boilerplate.utils import random_string
 
+HOST = 'http://127.0.0.1:5000'
 
 def create_user_to_signup_users(username, email, password, fullname, **kwargs):
     if (validate_username(username) and validate_password(password) and validate_email(email) and fullname):
@@ -16,11 +17,10 @@ def create_user_to_signup_users(username, email, password, fullname, **kwargs):
         else:
             password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(12))
             active_token = bcrypt.hashpw(random_string().encode('utf-8'), bcrypt.gensalt())
-            link_active = """http://127.0.0.1:5000/api/users/active/?active_token={}""".format(active_token.decode('utf-8'))
+            link_active = HOST+"/api/users/active/?active_token={}".format(active_token.decode('utf-8'))
             us = signup_user.save_user_to_signup_users(username=username, email=email, password_hash=password_hash,
                                                        fullname=fullname, active_token=active_token,
                                                        **kwargs)
-
             try:
                 e_m.send_email({
                     'username': username,
@@ -33,6 +33,9 @@ def create_user_to_signup_users(username, email, password, fullname, **kwargs):
     else:
         raise BadRequestException('Invalid data')
 
+def update_login(user_id):
+    log.save_log(user_id=user_id,action='login')
+    user.update_last_login(user_id)
 
 def check_user(username, password):
     if (not username) or (not password):
@@ -41,10 +44,12 @@ def check_user(username, password):
 
     if not u:
         raise BadRequestException('User not exist')
+    if u.status > 1:
+        raise BadRequestException('User was banned or deleted')
     if not (bcrypt.checkpw(password.encode('utf-8'), u.password_hash.encode('utf-8')) or bcrypt.checkpw(
             password.encode('utf-8'), u.recover_hash.encode('utf-8'))):
         raise BadRequestException('Username and password not match')
-    return True
+    return u
 
 
 def can_reset_password(username, email):
@@ -53,6 +58,9 @@ def can_reset_password(username, email):
     u = user.get_one_user_by_email_or_username(username, '')
     if u:
         if u.email == email:
+            if u.status > 1:
+                raise BadRequestException('User was banned or deleted')
+            log.save_log(user_id = u.id,action='forgot')
             p = username + email
             p = bcrypt.hashpw(p.encode('utf-8'), bcrypt.gensalt())
             user.update_recover_hash(u, bcrypt.hashpw(p, bcrypt.gensalt()))
@@ -103,4 +111,6 @@ def active_account(active_token):
         raise BadRequestException('Active invalid')
     if u.token_expire_at < datetime.datetime.now():
         raise BadRequestException('Token expired')
-    return signup_user.move_signup_user_to_user(u)
+    us = signup_user.move_signup_user_to_user(u)
+    log.save_log(user_id = us.id,action='create')
+    return True

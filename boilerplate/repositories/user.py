@@ -1,3 +1,4 @@
+import datetime
 from boilerplate import models as m
 
 def save_user(**kwargs):
@@ -18,4 +19,9 @@ def update_recover_hash(user,hash):
 
 def update_password_hash(user,hash):
     user.password_hash = hash
+    m.db.session.commit()
+
+def update_last_login(user_id):
+    u = m.User.query.get(user_id)
+    u.last_login = datetime.datetime.now()
     m.db.session.commit()

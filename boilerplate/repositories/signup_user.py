@@ -25,6 +25,7 @@ def move_signup_user_to_user(signup_user):
                             email=signup_user.email, fullname=signup_user.fullname, gender=signup_user.gender)
         m.db.session.delete(signup_user)
         m.db.session.commit()
-        return True
+
+        return us
     except:
         raise Exception("Can't save user from signup user")

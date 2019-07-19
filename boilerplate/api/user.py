@@ -1,5 +1,5 @@
 # coding=utf-8
-import copy
+
 import datetime
 
 import flask_restplus as _fr
@@ -7,7 +7,7 @@ from flask import request
 import flask_jwt_extended as _jwt
 
 from boilerplate.extensions import Namespace
-from boilerplate.services import user
+from boilerplate.services import user,auth
 
 ns = Namespace('users', description='User operations')
 
@@ -23,13 +23,12 @@ class Login(_fr.Resource):
         """
         Get access token
         """
-        data = request.values
-        if user.check_user(data.get('username'), data.get('password')):
-            iden = {
-                'username': data.get('username'),
-                'role': 'viewer'
-            }
-            access_token = _jwt.create_access_token(identity=iden,fresh=True,expires_delta=datetime.timedelta(minutes=30))
+        data = request.values or request.form or request.json
+        u = user.check_user(data.get('username'), data.get('password'))
+        if u:
+            user.update_login(u.id)
+            access_token = auth.get_access_token(data,True)
+
             return {
                 'access_token': access_token
             }
@@ -41,11 +40,9 @@ class Register(_fr.Resource):
         """
         Create new user
         """
-        data = request.values
+        data = request.values or request.form or request.json
         user.create_user_to_signup_users(data.get('username'), data.get('email'), data.get('password'), data.get('fullname'),
-                             gender=data.get('gender'), status=data.get('status')
-                             # ,role=role
-                             )
+                             gender=data.get('gender'))
         return {
             'message':'User was created successfully!'
         }
@@ -56,7 +53,7 @@ class ForgotPassword(_fr.Resource):
         """
         Forgot user password
         """
-        data = request.values
+        data = request.values or request.form or request.json
         pw = user.can_reset_password(data.get('username'), data.get('email'))
         return {
             'message': 'Success. Please check email for new information.'
@@ -71,7 +68,7 @@ class ChangePassword(_fr.Resource):
         Change user password
         """
         identity = _jwt.get_jwt_identity()
-        data = request.values
+        data = request.values or request.form or request.json
         user.change_password(identity.get('username'), data.get('oldpass'), data.get('newpass'))
         return {
             'message': 'Password was changed successfully'
@@ -83,6 +80,9 @@ class Active(_fr.Resource):
         """
         Active account
         """
-        data = request.values
+        data = request.values or request.form or request.json
         active_token = data.get('active_token')
-        return user.active_account(active_token=active_token)
+        user.active_account(active_token=active_token)
+        return {
+            'message': 'Active success'
+        }
