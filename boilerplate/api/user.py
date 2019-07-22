@@ -23,7 +23,7 @@ class Login(_fr.Resource):
         """
         Get access token
         """
-        data = request.values or request.form or request.json
+        data = request.values or request.json
         u = user.check_user(data.get('username'), data.get('password'))
         if u:
             user.update_login(u.id)
@@ -40,9 +40,9 @@ class Register(_fr.Resource):
         """
         Create new user
         """
-        data = request.values or request.form or request.json
-        user.create_user_to_signup_users(data.get('username'), data.get('email'), data.get('password'), data.get('fullname'),
-                             gender=data.get('gender'))
+        data = request.values or request.json
+
+        user.create_user_to_signup_users(data.get('username'), data.get('email'), data.get('password'), data.get('fullname'),data.get('gender'))
         return {
             'message':'User was created successfully!'
         }
@@ -53,7 +53,7 @@ class ForgotPassword(_fr.Resource):
         """
         Forgot user password
         """
-        data = request.values or request.form or request.json
+        data = request.values or request.json
         pw = user.can_reset_password(data.get('username'), data.get('email'))
         return {
             'message': 'Success. Please check email for new information.'
@@ -68,7 +68,7 @@ class ChangePassword(_fr.Resource):
         Change user password
         """
         identity = _jwt.get_jwt_identity()
-        data = request.values or request.form or request.json
+        data = request.values or request.json
         user.change_password(identity.get('username'), data.get('oldpass'), data.get('newpass'))
         return {
             'message': 'Password was changed successfully'
@@ -80,7 +80,7 @@ class Active(_fr.Resource):
         """
         Active account
         """
-        data = request.values or request.form or request.json
+        data = request.values or request.json
         active_token = data.get('active_token')
         user.active_account(active_token=active_token)
         return {

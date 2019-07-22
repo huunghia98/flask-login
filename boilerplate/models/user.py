@@ -3,7 +3,7 @@ import datetime
 import bcrypt
 
 from boilerplate.utils import random_string
-from boilerplate.utils.enum_model import Role
+from boilerplate.utils.enum_model import Role,Gender
 from flask_restplus import fields
 from boilerplate.models import db, TimestampMixin
 
@@ -30,7 +30,7 @@ class User(db.Model, TimestampMixin):
     email = db.Column(db.String(191), nullable=False, unique=True)
     username = db.Column(db.String(191), nullable=False, unique=True)
     fullname = db.Column(db.String(191), nullable=False)
-    gender = db.Column(db.String(191), nullable=True)
+    gender = db.Column(db.Enum(Gender), nullable=True,default=Gender.male)
     status = db.Column(db.Integer, default=1)
     # status: 1-normal 2-banned 3-deleted
     password_hash = db.Column(db.String(100))

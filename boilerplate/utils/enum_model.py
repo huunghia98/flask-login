@@ -12,3 +12,7 @@ class Action(enum.Enum):
     login = 'login'
     forgot = 'forgot'
     change = 'change'
+
+class Gender(enum.Enum):
+    male = 'male'
+    female = 'female'

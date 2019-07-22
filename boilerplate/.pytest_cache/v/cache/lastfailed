@@ -1,0 +1,3 @@
+{
+  "tests/api/test_user.py::LoginApiTestCase::test_login_user_when_success_then_return_user_response": true
+}

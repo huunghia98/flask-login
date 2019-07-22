@@ -9,8 +9,9 @@ from boilerplate.utils import random_string
 
 HOST = 'http://127.0.0.1:5000'
 
-def create_user_to_signup_users(username, email, password, fullname, **kwargs):
-    if (validate_username(username) and validate_password(password) and validate_email(email) and fullname):
+def create_user_to_signup_users(username, email, password, fullname, gender, **kwargs):
+    validGender = (not gender) or validate_gender(gender)
+    if validate_username(username) and validate_password(password) and validate_email(email) and validate_fullname(fullname) and validGender:
         exist = user.get_one_user_by_email_or_username(username, email)
         if exist:
             raise BadRequestException('User {username} or email {email} existed'.format(username=username, email=email))
@@ -40,8 +41,9 @@ def update_login(user_id):
 def check_user(username, password):
     if (not username) or (not password):
         raise BadRequestException('Username and Password must not be empty')
+    if not validate_username(username) or not validate_password(password):
+        raise BadRequestException('Invalid data')
     u = user.get_one_user_by_email_or_username(username, '')
-
     if not u:
         raise BadRequestException('User not exist')
     if u.status > 1:

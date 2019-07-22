@@ -1,0 +1,8 @@
+[
+  "tests/api/test_user_forgot_password.py::ForgotPasswordApiTestCase::test_forgot_password_when_not_correct_then_return_400_code",
+  "tests/api/test_user_forgot_password.py::ForgotPasswordApiTestCase::test_forgot_password_when_success_then_edit_recover_password_in_db_and_return_200_code",
+  "tests/api/test_user_login.py::LoginApiTestCase::test_login_user_when_invalid_data_then_return_400_code",
+  "tests/api/test_user_login.py::LoginApiTestCase::test_login_user_when_success_then_return_user_response",
+  "tests/api/test_user_register.py::RegisterApiTestCase::test_create_user_when_invalid_data_then_return_400_code",
+  "tests/api/test_user_register.py::RegisterApiTestCase::test_create_user_when_success_then_insert_to_db_and_return_200_code"
+]
