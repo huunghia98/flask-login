@@ -30,6 +30,8 @@ class LoginApiTestCase(APITestCase):
         }
         user = m.User(**valid_user)
         m.db.session.add(user)
+        m.db.session.commit()
+
         rv = self.send_request(data=valid_data)
 
         self.assertEqual(200, rv.status_code)

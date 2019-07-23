@@ -1,3 +1,6 @@
 {
-  "tests/api/test_user.py::LoginApiTestCase::test_login_user_when_success_then_return_user_response": true
+  "tests/api/test_active_account.py::ActiveAccountApiTestCase::test_forgot_password_when_success_then_edit_recover_password_in_db_and_return_200_code": true,
+  "tests/api/test_change_password.py::ChangePasswordApiTestCase::test_change_password_when_success_then_return_user_response": true,
+  "tests/api/test_user.py::LoginApiTestCase::test_login_user_when_success_then_return_user_response": true,
+  "tests/api/test_user_register.py::RegisterApiTestCase::test_create_user_exist_in_user_then_return_400_code": true
 }

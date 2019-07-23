@@ -27,7 +27,7 @@ class APITestCase(unittest.TestCase):
         """
         raise NotImplementedError("Cần khai báo method của API")
 
-    def send_request(self, data=None, content_type=None, method=None, url=None):
+    def send_request(self, data=None, content_type=None, method=None, url=None, headers=None,params=None):
         """
         Tự động send request theo method và url
         :param data:
@@ -42,6 +42,6 @@ class APITestCase(unittest.TestCase):
 
         method = method or getattr(self.client, self.method().lower())
         url = url or self.url()
-        res = method(url, data=data, content_type=content_type)
 
+        res = method(url, data=data, content_type=content_type, headers=headers,query_string=params)
         return res

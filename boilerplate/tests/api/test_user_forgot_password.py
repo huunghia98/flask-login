@@ -18,6 +18,7 @@ class ForgotPasswordApiTestCase(APITestCase):
 
     def test_forgot_password_when_success_then_edit_recover_password_in_db_and_return_200_code(self):
         valid_user = {
+            'id': '1',
             'username': 'helloworld',
             'email': 'hnnghia2@example.com',
             'password_hash': '$2b$12$SMCmEX7auWLjdolzXKBz0u/.T.is6SPz36xp6FkhxH4UT8VcnD2EW',
@@ -31,9 +32,10 @@ class ForgotPasswordApiTestCase(APITestCase):
         }
         user = m.User(**valid_user)
         m.db.session.add(user)
+        m.db.session.commit()
 
         rv = self.send_request(data=valid_data)
-        user = m.User.query.filter(m.User.username == valid_user['username']).first()
+        user = m.User.query.get(valid_user['id'])
 
         self.assertEqual(200, rv.status_code)
         self.assertNotEqual(valid_user['recover_hash'],user.recover_hash)
@@ -43,6 +45,7 @@ class ForgotPasswordApiTestCase(APITestCase):
             'username': 'helloworld',
             'email': 'hnnghia2@example',
         }
+
         rv = self.send_request(data=invalid_data)
 
         self.assertEqual(400, rv.status_code)

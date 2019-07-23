@@ -91,8 +91,12 @@ def change_password(username, oldpass, newpass):
 
             history = history_pass.get_history_5_pass(u.id)
             if validate_password(newpass):
-                for pw in history:
-                    if bcrypt.checkpw(newpass.encode('utf-8'), pw.encode('utf-8')):
+                for pwd in history:
+                    try:
+                        pw = pwd.encode('utf-8')
+                    except:
+                        pw = pwd
+                    if bcrypt.checkpw(newpass.encode('utf-8'), pw):
                         raise BadRequestException('Password must be different from 5 lastest password')
                 history_pass.save_history_pass(user_id=u.id,
                                                password_hash=bcrypt.hashpw(newpass.encode('utf-8'), bcrypt.gensalt()))
