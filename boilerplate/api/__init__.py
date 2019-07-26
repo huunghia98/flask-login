@@ -6,7 +6,7 @@ from boilerplate.extensions.exceptions import global_error_handler
 from .user import ns as user_ns
 from .welcome import wc as wc_ns
 import flask_jwt_extended as _jwt
-# from flask_cors import CORS
+from flask_cors import CORS
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -28,7 +28,7 @@ def init_app(app, **kwargs):
     app.config['JWT_SECRET_KEY'] = 'hello-boy'
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 300
 
-    # CORS(app)
+    CORS(app)
     jwt = _jwt.JWTManager(app)
 
     api.add_namespace(user_ns)

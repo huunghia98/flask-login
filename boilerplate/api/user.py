@@ -24,6 +24,7 @@ class Login(_fr.Resource):
         Get access token
         """
         data = request.values or request.json
+        print(data)
         u = user.check_user(data.get('username'), data.get('password'))
         if u:
             user.update_login(u.id)

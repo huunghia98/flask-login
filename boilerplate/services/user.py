@@ -4,8 +4,8 @@ import datetime
 from boilerplate.repositories import user, log, signup_user, history_pass
 from boilerplate.extensions.exceptions import BadRequestException
 from boilerplate.utils.validator import *
-from boilerplate.utils import email as e_m
-from boilerplate.utils import random_string
+from boilerplate.utils import send_mail as e_m
+from boilerplate.utils.random_string import random_string
 
 HOST = 'http://127.0.0.1:5000'
 
@@ -66,11 +66,14 @@ def can_reset_password(username, email):
             p = username + email
             p = bcrypt.hashpw(p.encode('utf-8'), bcrypt.gensalt())
             user.update_recover_hash(u, bcrypt.hashpw(p, bcrypt.gensalt()))
-            new_detail = {
-                'username': username,
-                'password': p.decode()
-            }
-            e_m.send_email(new_detail, email)
+            try:
+                new_detail = {
+                    'username': username,
+                    'password': p.decode()
+                }
+                e_m.send_email(new_detail, email)
+            except:
+                print('Email user {} not be sent'.format(email))
             return p
         else:
             raise BadRequestException('Username and email not match')
