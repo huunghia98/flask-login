@@ -4,11 +4,11 @@ from boilerplate.models import db, TimestampMixin
 __author__ = 'ThucNC'
 
 
-class History_pass(db.Model, TimestampMixin):
+class Log_login_attempt(db.Model, TimestampMixin):
     """
-    Contains information of temporary sign up users table
+    Contains information of attempt login unsuccessfully
     """
-    __tablename__ = 'history_pass'
+    __tablename__ = 'log_login_attempt'
 
     def __init__(self, **kwargs):
         """
@@ -19,5 +19,4 @@ class History_pass(db.Model, TimestampMixin):
             setattr(self, k, v)
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    password_hash = db.Column(db.String(100))
+    username = db.Column(db.String(191), nullable=False)

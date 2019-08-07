@@ -31,8 +31,6 @@ class User(db.Model, TimestampMixin):
     username = db.Column(db.String(191), nullable=False, unique=True)
     fullname = db.Column(db.String(191), nullable=False)
     gender = db.Column(db.Enum(Gender), nullable=True,default=Gender.male)
-    status = db.Column(db.Integer, default=1)
-    # status: 1-normal 2-banned 3-deleted
     password_hash = db.Column(db.String(100))
     recover_hash = db.Column(db.String(100), default= bcrypt.hashpw(random_string().encode('utf-8'), bcrypt.gensalt()))
     id_token = db.Column(db.String(512), nullable=True)

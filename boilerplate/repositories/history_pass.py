@@ -10,6 +10,7 @@ def save_history_pass(**kwargs):
     try:
         p = m.History_pass(**kwargs)
         m.db.session.add(p)
+        m.db.session.commit()
         return p
     except:
         raise Exception("Can't save history pass")

@@ -6,6 +6,7 @@ def save_user_to_signup_users(**kwargs):
     try:
         user = m.Signup_user(**kwargs)
         m.db.session.add(user)
+        m.db.session.commit()
         return user
     except:
         raise Exception("Can't save user for signing up")

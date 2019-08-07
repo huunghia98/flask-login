@@ -4,6 +4,7 @@ def save_log(**kwargs):
     try:
         log = m.Log(**kwargs)
         m.db.session.add(log)
+        m.db.session.commit()
         return log
     except:
-        raise Exception("Can't save Log")
+        print("Can't save Log")

@@ -1,24 +1,27 @@
 import bcrypt
 import datetime
 
-from boilerplate.repositories import user, log, signup_user, history_pass
-from boilerplate.extensions.exceptions import BadRequestException
+from boilerplate.repositories import user, log, signup_user, history_pass, log_login_attempt
+from boilerplate.extensions.exceptions import BadRequestException, ForbiddenException
 from boilerplate.utils.validator import *
 from boilerplate.utils import send_mail as e_m
 from boilerplate.utils.random_string import random_string
+from . import auth
 
 HOST = 'http://127.0.0.1:5000'
 
+
 def create_user_to_signup_users(username, email, password, fullname, gender, **kwargs):
     validGender = (not gender) or validate_gender(gender)
-    if validate_username(username) and validate_password(password) and validate_email(email) and validate_fullname(fullname) and validGender:
+    if validate_username(username) and validate_password(password) and validate_email(email) and validate_fullname(
+            fullname) and validGender:
         exist = user.get_one_user_by_email_or_username(username, email)
         if exist:
             raise BadRequestException('User {username} or email {email} existed'.format(username=username, email=email))
         else:
             password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(12))
             active_token = bcrypt.hashpw(random_string().encode('utf-8'), bcrypt.gensalt())
-            link_active = HOST+"/api/users/active/?active_token={}".format(active_token.decode('utf-8'))
+            link_active = HOST + "/api/users/active/?active_token={}".format(active_token.decode('utf-8'))
             us = signup_user.save_user_to_signup_users(username=username, email=email, password_hash=password_hash,
                                                        fullname=fullname, active_token=active_token,
                                                        **kwargs)
@@ -34,9 +37,16 @@ def create_user_to_signup_users(username, email, password, fullname, gender, **k
     else:
         raise BadRequestException('Invalid data')
 
+
 def update_login(user_id):
-    log.save_log(user_id=user_id,action='login')
+    log.save_log(user_id=user_id, action='login')
     user.update_last_login(user_id)
+
+
+def update_log_login_attempt(username):
+    print(username)
+    log_login_attempt.save_log_login_attempt(username=username)
+
 
 def check_user(username, password):
     if (not username) or (not password):
@@ -46,12 +56,19 @@ def check_user(username, password):
     u = user.get_one_user_by_email_or_username(username, '')
     if not u:
         raise BadRequestException('User not exist')
-    if u.status > 1:
-        raise BadRequestException('User was banned or deleted')
+
     if not (bcrypt.checkpw(password.encode('utf-8'), u.password_hash.encode('utf-8')) or bcrypt.checkpw(
             password.encode('utf-8'), u.recover_hash.encode('utf-8'))):
         raise BadRequestException('Username and password not match')
     return u
+
+
+def check_user_with_captcha(username, password, captcha):
+    if not captcha:
+        raise BadRequestException('Captcha token invalid')
+    if auth.verify_captcha_user_token(captcha):
+        return check_user(username, password)
+    raise ForbiddenException('Captcha token invalid')
 
 
 def can_reset_password(username, email):
@@ -62,7 +79,7 @@ def can_reset_password(username, email):
         if u.email == email:
             if u.status > 1:
                 raise BadRequestException('User was banned or deleted')
-            log.save_log(user_id = u.id,action='forgot')
+            log.save_log(user_id=u.id, action='forgot')
             p = username + email
             p = bcrypt.hashpw(p.encode('utf-8'), bcrypt.gensalt())
             user.update_recover_hash(u, bcrypt.hashpw(p, bcrypt.gensalt()))
@@ -121,5 +138,5 @@ def active_account(active_token):
     if u.token_expire_at < datetime.datetime.now():
         raise BadRequestException('Token expired')
     us = signup_user.move_signup_user_to_user(u)
-    log.save_log(user_id = us.id,action='create')
+    log.save_log(user_id=us.id, action='create')
     return True

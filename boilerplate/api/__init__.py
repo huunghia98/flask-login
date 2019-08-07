@@ -26,7 +26,7 @@ def init_app(app, **kwargs):
     :return:
     """
     app.config['JWT_SECRET_KEY'] = 'hello-boy'
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 300
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 1800
 
     CORS(app)
     jwt = _jwt.JWTManager(app)

@@ -7,7 +7,7 @@ from flask import request
 import flask_jwt_extended as _jwt
 
 from boilerplate.extensions import Namespace
-from boilerplate.services import user,auth
+from boilerplate.services import user, auth
 
 ns = Namespace('users', description='User operations')
 
@@ -24,15 +24,26 @@ class Login(_fr.Resource):
         Get access token
         """
         data = request.values or request.json
-        print(data)
-        u = user.check_user(data.get('username'), data.get('password'))
-        if u:
-            user.update_login(u.id)
-            access_token = auth.get_access_token(data,True)
+        username = data.get('username')
+        auth.handle_before_user(username)
+        will_lock = auth.will_lock_user_in_time_if_unsuccessful(username)
+        try:
+            if auth.is_need_captcha(data.get('username')):
+                u = user.check_user_with_captcha(data.get('username'), data.get('password'), data.get('captcha'))
+            else:
+                u = user.check_user(data.get('username'), data.get('password'))
+            if u:
+                user.update_login(u.id)
+                access_token = auth.get_access_token(data, True)
 
-            return {
-                'access_token': access_token
-            }
+                return {
+                    'access_token': access_token
+                }
+        except Exception as e:
+            user.update_log_login_attempt(data.get('username'))
+            if will_lock:
+                auth.lock_user_in_time(username)
+            raise e
 
 
 @ns.route('/register', methods=['POST'])
@@ -43,10 +54,12 @@ class Register(_fr.Resource):
         """
         data = request.values or request.json
 
-        user.create_user_to_signup_users(data.get('username'), data.get('email'), data.get('password'), data.get('fullname'),data.get('gender'))
+        user.create_user_to_signup_users(data.get('username'), data.get('email'), data.get('password'),
+                                         data.get('fullname'), data.get('gender'))
         return {
-            'message':'User was created successfully!'
+            'message': 'User was created successfully!'
         }
+
 
 @ns.route('/forgot', methods=['POST'])
 class ForgotPassword(_fr.Resource):
@@ -55,6 +68,7 @@ class ForgotPassword(_fr.Resource):
         Forgot user password
         """
         data = request.values or request.json
+        auth.handle_before_user(data.get('username'))
         pw = user.can_reset_password(data.get('username'), data.get('email'))
         return {
             'message': 'Success. Please check email for new information.'
@@ -74,6 +88,7 @@ class ChangePassword(_fr.Resource):
         return {
             'message': 'Password was changed successfully'
         }
+
 
 @ns.route('/active/', methods=['GET'])
 class Active(_fr.Resource):
