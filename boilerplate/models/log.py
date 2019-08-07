@@ -11,7 +11,7 @@ __author__ = 'ThucNC'
 
 class Log(db.Model, TimestampMixin):
     """
-    Contains information of log account table
+    Contains information of temporary sign up users table
     """
     __tablename__ = 'log'
 

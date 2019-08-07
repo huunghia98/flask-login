@@ -27,5 +27,3 @@ from .user import User, UserSchema
 from .signup_user import Signup_user
 from .log import Log
 from .history_pass import History_pass
-from .log_login_attempt import Log_login_attempt
-from .blacklist import Blacklist

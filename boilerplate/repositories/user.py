@@ -7,7 +7,6 @@ def save_user(**kwargs):
     try:
         user = m.User(**kwargs)
         m.db.session.add(user)
-        m.db.session.commit()
         return user
     except:
         raise Exception("Can't save user")
